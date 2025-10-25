@@ -44,7 +44,20 @@ class ScreenAndAudioRecorder:
             ffmpeg_cmd = ["ffmpeg", "-y", "-thread_queue_size", "4096", "-framerate", "30", "-video_size", f"{self.screen_dimensions[0]}x{self.screen_dimensions[1]}", "-f", "x11grab", "-draw_mouse", "0", "-probesize", "32", "-i", display_var, "-thread_queue_size", "4096", "-f", "alsa", "-i", "default", "-vf", f"crop={self.recording_dimensions[0]}:{self.recording_dimensions[1]}:10:10", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-g", "30", "-c:a", "aac", "-strict", "experimental", "-b:a", "128k", self.file_location]
 
         logger.info(f"Starting FFmpeg command: {' '.join(ffmpeg_cmd)}")
-        self.ffmpeg_proc = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        try:
+            self.ffmpeg_proc = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Give FFmpeg a moment to start and check if it failed immediately
+            import time
+            time.sleep(0.5)
+            if self.ffmpeg_proc.poll() is not None:
+                # Process ended immediately - likely an error
+                stdout, stderr = self.ffmpeg_proc.communicate()
+                logger.error(f"FFmpeg failed to start. Return code: {self.ffmpeg_proc.returncode}")
+                logger.error(f"FFmpeg stderr: {stderr.decode('utf-8', errors='ignore')}")
+                self.ffmpeg_proc = None
+        except Exception as e:
+            logger.error(f"Failed to start FFmpeg: {e}")
+            self.ffmpeg_proc = None
 
     # Pauses by muting the audio and showing a black xterm covering the entire screen
     def pause_recording(self):
