@@ -1,20 +1,23 @@
 import os
 
+import dj_database_url
+
 from .base import *
 
 DEBUG = True
 SITE_DOMAIN = "localhost:8000"
 ALLOWED_HOSTS = []
 
+# Use DATABASE_URL if set, otherwise fall back to local test database
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "attendee_test",
-        "USER": "attendee_test_user",
-        "PASSWORD": "attendee_test_user",
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": "5432",
-    }
+    "default": dj_database_url.config(
+        default=os.getenv(
+            "DATABASE_URL",
+            "postgresql://attendee_test_user:attendee_test_user@localhost:5432/attendee_test"
+        ),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 

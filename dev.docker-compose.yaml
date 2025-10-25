@@ -5,8 +5,9 @@ services:
      - .:/attendee
     networks:
       - attendee_network
+    env_file:
+      - .env
     environment:
-      - POSTGRES_HOST=postgres
       - REDIS_URL=redis://redis:6379/5
       - DJANGO_SETTINGS_MODULE=attendee.settings.development
       - ENABLE_CHROME_SANDBOX=true
@@ -20,8 +21,9 @@ services:
      - .:/attendee
     networks:
       - attendee_network
+    env_file:
+      - .env
     environment:
-      - POSTGRES_HOST=postgres
       - REDIS_URL=redis://redis:6379/5
       - DJANGO_SETTINGS_MODULE=attendee.settings.development
     command: "python manage.py run_scheduler"
@@ -35,10 +37,14 @@ services:
       - attendee_network
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_HOST=postgres
       - REDIS_URL=redis://redis:6379/5
       - DJANGO_SETTINGS_MODULE=attendee.settings.development
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     command: python manage.py runserver 0.0.0.0:8000
     entrypoint: []
 
@@ -60,18 +66,18 @@ services:
       - webpage-streamer
 
 
-  postgres:
-    image: postgres:15.3-alpine
-    environment:
-      POSTGRES_DB: attendee_development
-      POSTGRES_USER: attendee_development_user
-      POSTGRES_PASSWORD: attendee_development_user
-      PGDATA: /data/postgres
-    volumes:
-       - postgres:/data/postgres
-    networks:
-      - attendee_network
-    restart: unless-stopped
+  # postgres:
+  #   image: postgres:15.3-alpine
+  #   environment:
+  #     POSTGRES_DB: attendee_development
+  #     POSTGRES_USER: attendee_development_user
+  #     POSTGRES_PASSWORD: attendee_development_user
+  #     PGDATA: /data/postgres
+  #   volumes:
+  #      - postgres:/data/postgres
+  #   networks:
+  #     - attendee_network
+  #   restart: unless-stopped
 
 
   redis:
@@ -87,5 +93,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres:
+  # postgres:
   redis:

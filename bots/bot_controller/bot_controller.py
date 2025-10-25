@@ -65,6 +65,7 @@ from .pipeline_configuration import PipelineConfiguration
 from .realtime_audio_output_manager import RealtimeAudioOutputManager
 from .rtmp_client import RTMPClient
 from .s3_file_uploader import S3FileUploader
+from .supabase_file_uploader import SupabaseFileUploader
 from .screen_and_audio_recorder import ScreenAndAudioRecorder
 from .video_output_manager import VideoOutputManager
 
@@ -430,6 +431,13 @@ class BotController:
                 connection_string=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("connection_string"),
                 account_key=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("account_key"),
                 account_name=settings.RECORDING_STORAGE_BACKEND.get("OPTIONS").get("account_name"),
+            )
+        elif settings.STORAGE_PROTOCOL == "supabase":
+            return SupabaseFileUploader(
+                bucket=settings.SUPABASE_BUCKET_NAME,
+                filename=self.get_recording_filename(),
+                supabase_url=settings.SUPABASE_URL,
+                supabase_key=settings.SUPABASE_KEY,
             )
 
         return S3FileUploader(

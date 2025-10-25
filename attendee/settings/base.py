@@ -198,10 +198,13 @@ SPECTACULAR_SETTINGS = {
 # publish with python manage.py spectacular --color --file docs/openapi.yml
 
 # Set up django storage backend
-# Use s3 by default, but if the STORAGE_PROTOCOL env var is set to "azure", use azure storage
+# Use s3 by default, but if the STORAGE_PROTOCOL env var is set to "azure" or "supabase", use respective storage
 STORAGE_PROTOCOL = os.getenv("STORAGE_PROTOCOL", "s3")
 AWS_RECORDING_STORAGE_BUCKET_NAME = os.getenv("AWS_RECORDING_STORAGE_BUCKET_NAME")
 AZURE_RECORDING_STORAGE_CONTAINER_NAME = os.getenv("AZURE_RECORDING_STORAGE_CONTAINER_NAME")
+SUPABASE_BUCKET_NAME = os.getenv("SUPABASE_BUCKET_NAME")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if STORAGE_PROTOCOL == "azure":
     DEFAULT_STORAGE_BACKEND = {
@@ -215,6 +218,19 @@ if STORAGE_PROTOCOL == "azure":
     }
     RECORDING_STORAGE_BACKEND = copy.deepcopy(DEFAULT_STORAGE_BACKEND)
     RECORDING_STORAGE_BACKEND["OPTIONS"]["azure_container"] = AZURE_RECORDING_STORAGE_CONTAINER_NAME
+elif STORAGE_PROTOCOL == "supabase":
+    # Supabase storage is handled by SupabaseFileUploader, not django-storages
+    # Use FileSystemStorage for Django's internal file handling (admin uploads, etc.)
+    DEFAULT_STORAGE_BACKEND = {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": os.path.join(BASE_DIR, "media"),
+            "base_url": "/media/",
+        },
+    }
+    # Recordings still use Supabase via SupabaseFileUploader in bot_controller
+    # This is just a placeholder for STORAGES configuration
+    RECORDING_STORAGE_BACKEND = copy.deepcopy(DEFAULT_STORAGE_BACKEND)
 else:
     DEFAULT_STORAGE_BACKEND = {
         "BACKEND": "storages.backends.s3.S3Storage",
