@@ -48,15 +48,16 @@ class SupabaseFileUploader:
             if not file_path.exists():
                 raise FileNotFoundError(f"File not found: {file_path}")
 
-            # Read the file and upload to Supabase Storage
-            with open(file_path, "rb") as f:
-                file_data = f.read()
-
-            response = self.supabase_client.storage.from_(self.bucket).upload(
-                path=self.filename,
-                file=file_data,
-                file_options={"content-type": "application/octet-stream"}
-            )
+            # Upload file using streaming (like Azure/S3 uploaders)
+            with file_path.open("rb") as f:
+                response = self.supabase_client.storage.from_(self.bucket).upload(
+                    path=self.filename,
+                    file=f,
+                    file_options={
+                        "content-type": "video/mp4",
+                        "upsert": "true"
+                    }
+                )
 
             logger.info(f"Successfully uploaded {file_path} to supabase://{self.bucket}/{self.filename}")
 
