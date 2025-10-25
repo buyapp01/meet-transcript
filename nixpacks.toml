@@ -1,0 +1,5 @@
+[phases.setup]
+nixPkgs = []
+
+[start]
+cmd = "bash -c 'if [ \"$RAILWAY_SERVICE_NAME\" = \"worker\" ]; then celery -A attendee worker -l info --pool=solo; else gunicorn attendee.wsgi --bind 0.0.0.0:$PORT; fi'"
